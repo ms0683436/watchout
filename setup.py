@@ -143,13 +143,17 @@ class ConfigManager:
                 ret, frame = cap.read()
                 if not ret:
                     break
-                    
+                
+                cv2.putText(frame, "Press ESC to exit", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                 cv2.imshow("Camera Test", frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == 27:  # 27 is the ESC key
                     break
                     
             cap.release()
-            cv2.destroyAllWindows()
+            cv2.destroyWindow("Camera Test")
+            # Add a small wait to ensure the window closes properly
+            for _ in range(4):
+                cv2.waitKey(1)
             
         except ImportError:
             logger.error("❌ 未安裝 OpenCV")

@@ -80,7 +80,14 @@ class PrivacyGuard:
         """Loads the ONNX face detection model"""
         try:
             logger.info("Loading face detection model...")
-            self.session = ort.InferenceSession(MODEL_PATH)
+            
+            # Define execution providers, prioritizing QNN (NPU) over CPU
+            providers = ['QnnExecutionProvider', 'CPUExecutionProvider']
+            
+            self.session = ort.InferenceSession(MODEL_PATH, providers=providers)
+            
+            # Log the actual provider being used
+            logger.info(f"ONNX Runtime is using provider: {self.session.get_providers()}")
             self.input_name = self.session.get_inputs()[0].name
             self.in_w = self.session.get_inputs()[0].shape[3]
             self.in_h = self.session.get_inputs()[0].shape[2]
@@ -379,6 +386,12 @@ class PrivacyGuard:
                     cv2.putText(display_frame, f'Detected {face_count} people | {status_text}', 
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
                     
+                    # Add exit hint
+                    (text_width, text_height), _ = cv2.getTextSize("Press ESC to exit", cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+                    cv2.putText(display_frame, "Press ESC to exit", 
+                              (display_frame.shape[1] - text_width - 10, 30), 
+                              cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    
                     # Force display of preview window (improved)
                     window_name = 'Privacy Guard - Face Detection Preview'
                     logger.debug(f"Attempting to show frame in window {window_name}...")
@@ -388,6 +401,12 @@ class PrivacyGuard:
                         
                         # Handle keyboard input
                         key = cv2.waitKey(1) & 0xFF
+
+                        # On ESC key press, exit the program
+                        if key == 27:
+                            logger.info("ESC key pressed, exiting...")
+                            self.is_running = False
+                            break
 
                     except Exception as e:
                         logger.warning(f"Error displaying preview window: {e}")

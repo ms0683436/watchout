@@ -144,15 +144,6 @@ Thumbs.db
 *.swo
 *~
 
-# Model files (if they are large or downloadable)
-*.onnx
-*.pth
-*.pt
-*.h5
-*.pb
-*.tflite
-model.onnx/
-
 # Temporary files
 *.tmp
 *.temp
