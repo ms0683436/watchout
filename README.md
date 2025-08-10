@@ -70,8 +70,12 @@ pip install -r requirements.txt
 
 `onnxruntime` 需要特定組態才能使用 Snapdragon NPU (也稱為 Qualcomm AI Engine)。這通常需要使用為了 Windows on Arm (WoA) 編譯的版本，並包含 QNN 支援。
 
-- **自動化安裝**: `pip` 可能會自動為您的平台選擇合適的 `onnxruntime` 版本。您可以先嘗試預設安裝。
-- **手動安裝**: 如果預設版本不支援 NPU，您可能需要從 [ONNX Runtime GitHub Releases](https://github.com/microsoft/onnxruntime/releases) 下載針對 `win-arm64` 的 wheel 檔案 (`.whl`) 並手動安裝。
+- **QNN 僅適用於 Windows 且具備 Qualcomm NPU 的裝置。**
+- **使用 QnnExecutionProvider 前，請先安裝 `onnxruntime-qnn`：**
+
+  ```bash
+  pip install onnxruntime-qnn
+  ```
 
 ### 2. 如何啟用 NPU 加速
 
@@ -90,17 +94,26 @@ pip install -r requirements.txt
 
 ## ⚙️ 運行與測試
 
-### 1. 首次設定 (建議)
+### 1. 設定與啟動 (推薦方式)
 
-初次使用時，建議先運行設定工具來調整參數以符合您的環境。
+**推薦使用設定工具進行參數調整並直接啟動程式**，這是最便利的使用方式：
 
 ```bash
 python setup.py
 ```
 
-您可以透過此工具調整偵測靈敏度、攝影機、延遲時間等。
+設定工具提供以下功能：
 
-### 2. 啟動主程式
+- 調整偵測靈敏度、攝影機索引、延遲時間等參數
+- 測試攝影機是否正常運作
+- 儲存設定
+- **設定完成後可直接從工具內啟動 Privacy Guard**
+
+在設定工具的主選單中選擇「5. 啟動 Privacy Guard」即可自動儲存設定並啟動程式。
+
+### 2. 直接啟動主程式 (進階用法)
+
+如果您已完成設定，也可以直接執行主程式：
 
 ```bash
 python main.py
