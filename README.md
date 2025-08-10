@@ -64,6 +64,8 @@ pip install -r requirements.txt
 
 ## 🚀 在 Snapdragon X 系列筆電上運行 (NPU 加速)
 
+> ⚠️ **注意**: 此功能尚未在實際的 Snapdragon X 系列硬體上進行測試，功能可行性有待驗證。
+
 為了在搭載 Snapdragon X Elite/Plus 的筆電上獲得最佳效能，建議使用 `QNN` 執行緒提供者 (Execution Provider) 來驅動 NPU 進行 AI 運算。
 
 ### 1. ONNX Runtime 的 QNN 執行緒提供者
