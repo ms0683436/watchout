@@ -165,6 +165,6 @@ captures/
 *.gif
 *.bmp
 
-# Privacy Guard specific
+# Watch Out specific
 privacy_guard_config.json
 debug_*.py

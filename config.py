@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-配置檔案 - Privacy Guard 設定
+配置檔案 - Watch Out 設定
 """
 
 # 臉部偵測設定
@@ -31,6 +31,4 @@ MAX_LOG_SIZE_MB = 10        # 最大日誌檔案大小 (MB)
 # 模型設定
 MODEL_PATH = "model.onnx/model.onnx"  # ONNX 模型路徑
 
-# 通知設定
-ENABLE_SOUND_ALERT = False    # 是否啟用聲音提醒
-ENABLE_DESKTOP_NOTIFICATION = True  # 是否啟用桌面通知
+

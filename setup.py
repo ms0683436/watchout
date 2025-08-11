@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-CLI 設定工具 - Privacy Guard
+CLI 設定工具 - Watch Out
 簡單的命令列介面來調整設定
 """
 
@@ -29,8 +29,7 @@ class ConfigManager:
             'overlay_alpha': OVERLAY_ALPHA,
             'detection_interval': DETECTION_INTERVAL,
             'enable_face_preview': ENABLE_FACE_PREVIEW,
-            'enable_sound_alert': ENABLE_SOUND_ALERT,
-            'enable_desktop_notification': ENABLE_DESKTOP_NOTIFICATION
+            
         }
         
         if os.path.exists(self.config_file):
@@ -62,8 +61,7 @@ class ConfigManager:
         logger.info(f"4. 覆蓋層透明度: {self.config['overlay_alpha']}")
         logger.info(f"5. 偵測間隔: {self.config['detection_interval']} 秒")
         logger.info(f"6. 顯示臉部預覽: {'是' if self.config['enable_face_preview'] else '否'}")
-        logger.info(f"7. 聲音提醒: {'是' if self.config['enable_sound_alert'] else '否'}")
-        logger.info(f"8. 桌面通知: {'是' if self.config['enable_desktop_notification'] else '否'}")
+        
         
     def modify_config(self):
         """修改配置"""
@@ -109,12 +107,7 @@ class ConfigManager:
                 elif choice == 6:
                     answer = input("顯示臉部預覽? (y/n): ").lower()
                     self.config['enable_face_preview'] = answer == 'y'
-                elif choice == 7:
-                    answer = input("啟用聲音提醒? (y/n): ").lower()
-                    self.config['enable_sound_alert'] = answer == 'y'
-                elif choice == 8:
-                    answer = input("啟用桌面通知? (y/n): ").lower()
-                    self.config['enable_desktop_notification'] = answer == 'y'
+                
                 else:
                     logger.error("❌ 無效選項")
                     
@@ -163,13 +156,13 @@ class ConfigManager:
     def main_menu(self):
         """主選單"""
         while True:
-            logger.info("\n🛡️  Privacy Guard 設定工具")
+            logger.info("\n🛡️  Watch Out 設定工具")
             logger.info("=" * 50)
             logger.info("1. 查看當前設定")
             logger.info("2. 修改設定")
             logger.info("3. 測試攝影機")
             logger.info("4. 儲存設定")
-            logger.info("5. 啟動 Privacy Guard")
+            logger.info("5. 啟動 Watch Out")
             logger.info("0. 結束")
             
             try:
@@ -187,7 +180,7 @@ class ConfigManager:
                 elif choice == 4:
                     self.save_config()
                 elif choice == 5:
-                    logger.info("\n🚀 啟動 Privacy Guard...")
+                    logger.info("\n🚀 啟動 Watch Out...")
                     self.save_config()
                     os.system("python main.py")
                 else:

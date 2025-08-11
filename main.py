@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Dynamic Focus Assistant - Privacy Guard
+Dynamic Focus Assistant - Watch Out
 Automatically blurs the screen when multiple people are detected to protect sensitive content
 Uses Qualcomm AI Hub face detection model
 """
@@ -54,8 +54,7 @@ class PrivacyGuard:
         self.overlay_alpha = OVERLAY_ALPHA
         self.detection_interval = DETECTION_INTERVAL
         self.enable_face_preview = ENABLE_FACE_PREVIEW
-        self.enable_sound_alert = ENABLE_SOUND_ALERT
-        self.enable_desktop_notification = ENABLE_DESKTOP_NOTIFICATION
+        
         
         # Load user custom configuration
         if os.path.exists(config_file):
@@ -69,8 +68,7 @@ class PrivacyGuard:
                 self.overlay_alpha = user_config.get('overlay_alpha', self.overlay_alpha)
                 self.detection_interval = user_config.get('detection_interval', self.detection_interval)
                 self.enable_face_preview = user_config.get('enable_face_preview', self.enable_face_preview)
-                self.enable_sound_alert = user_config.get('enable_sound_alert', self.enable_sound_alert)
-                self.enable_desktop_notification = user_config.get('enable_desktop_notification', self.enable_desktop_notification)
+                
                 
                 logger.info("User configuration loaded")
             except Exception as e:
@@ -114,7 +112,7 @@ class PrivacyGuard:
             if self.enable_face_preview:
                 logger.debug("Attempting to initialize preview window...")
                 try:
-                    window_name = 'Privacy Guard - Face Detection Preview'
+                    window_name = 'Watch Out - Face Detection Preview'
                     cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
                     logger.info("Preview window initialized")
                     logger.debug("Preview window initialized successfully.")
@@ -271,32 +269,17 @@ class PrivacyGuard:
             self.privacy_mode = True
             # Display a clear privacy mode message in the terminal
             logger.info("\n" + "="*60)
-            logger.info("🔒 Privacy Guard Mode Activated!")
+            logger.info("🔒 Watch Out Mode Activated!")
             logger.info("Someone else detected. It's recommended to step away or secure sensitive content.")
             logger.info("Press Ctrl+C to exit")
             logger.info("="*60)
             
-            # Use system notification (macOS)
-            if self.enable_desktop_notification:
-                try:
-                    subprocess.run([
-                        'osascript', '-e', 
-                        'display notification "Someone else detected, please be aware of your privacy." with title "🔒 Privacy Guard Mode"'
-                    ], check=False)
-                except:
-                    pass
             
-            # Optional: play system sound alert
-            if self.enable_sound_alert:
-                try:
-                    subprocess.run(['afplay', '/System/Library/Sounds/Sosumi.aiff'], check=False)
-                except:
-                    pass
                     
-            logger.info("Privacy Guard Mode activated")
+            logger.info("Watch Out Mode activated")
             
         except Exception as e:
-            logger.error(f"Failed to activate Privacy Guard Mode: {e}")
+            logger.error(f"Failed to activate Watch Out Mode: {e}")
             
     def remove_privacy_overlay(self):
         """Removes the privacy mode"""
@@ -304,12 +287,12 @@ class PrivacyGuard:
             if self.privacy_mode:
                 self.privacy_mode = False
                 logger.info("\n" + "="*60)
-                logger.info("✅ Privacy Guard Mode Deactivated")
+                logger.info("✅ Watch Out Mode Deactivated")
                 logger.info("Environment secure. You can continue your work.")
                 logger.info("="*60)
-                logger.info("Privacy Guard Mode deactivated")
+                logger.info("Watch Out Mode deactivated")
         except Exception as e:
-            logger.error(f"Failed to deactivate Privacy Guard Mode: {e}")
+            logger.error(f"Failed to deactivate Watch Out Mode: {e}")
             
     def update_privacy_status(self, face_count):
         """Updates the privacy status based on the number of detected faces"""
@@ -322,13 +305,13 @@ class PrivacyGuard:
                 elif current_time - self.last_detection_time >= self.privacy_delay:
                     # Activate privacy mode
                     self.create_privacy_overlay()
-                    logger.info(f"Activating Privacy Guard Mode - {face_count} people detected")
+                    logger.info(f"Activating Watch Out Mode - {face_count} people detected")
         else:  # One person or no one
             self.last_detection_time = 0
             if self.privacy_mode:
                 # Deactivate privacy mode
                 self.remove_privacy_overlay()
-                logger.info("Deactivating Privacy Guard Mode - Environment secure")
+                logger.info("Deactivating Watch Out Mode - Environment secure")
                 
     def run_detection_loop(self):
         """Main detection loop"""
@@ -393,7 +376,7 @@ class PrivacyGuard:
                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                     
                     # Force display of preview window (improved)
-                    window_name = 'Privacy Guard - Face Detection Preview'
+                    window_name = 'Watch Out - Face Detection Preview'
                     logger.debug(f"Attempting to show frame in window {window_name}...")
                     try:
                         cv2.imshow(window_name, display_frame)
@@ -437,7 +420,7 @@ class PrivacyGuard:
                 time.sleep(1)
                 
     def start(self):
-        """Starts the Privacy Guard"""
+        """Starts the Watch Out"""
         logger.info("Starting Dynamic Focus Assistant...")
 
         if not self.load_model():
@@ -466,7 +449,7 @@ class PrivacyGuard:
             detection_thread = threading.Thread(target=self.run_detection_loop, daemon=True)
             detection_thread.start()
 
-            logger.info("Privacy Guard started!")
+            logger.info("Watch Out started!")
             logger.info("- Privacy mode will be activated automatically when multiple people are detected")
             logger.info("- Press Ctrl+C to exit")
 
@@ -483,7 +466,7 @@ class PrivacyGuard:
         return True
         
     def stop(self):
-        """Stops the Privacy Guard"""
+        """Stops the Watch Out"""
         self.is_running = False
         
         if self.cap:
@@ -496,11 +479,11 @@ class PrivacyGuard:
         for i in range(5):
             cv2.waitKey(1)
             
-        logger.info("Privacy Guard stopped")
+        logger.info("Watch Out stopped")
 
 def main():
     """Main function"""
-    logger.info("🛡️  Dynamic Focus Assistant - Privacy Guard")
+    logger.info("🛡️  Dynamic Focus Assistant - Watch Out")
     logger.info("=" * 50)
     
     guard = PrivacyGuard()
