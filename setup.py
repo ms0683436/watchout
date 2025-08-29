@@ -26,10 +26,13 @@ class ConfigManager:
             'detection_threshold': DETECTION_THRESHOLD,
             'privacy_delay': PRIVACY_DELAY,
             'camera_index': CAMERA_INDEX,
-            'overlay_alpha': OVERLAY_ALPHA,
             'detection_interval': DETECTION_INTERVAL,
             'enable_face_preview': ENABLE_FACE_PREVIEW,
             
+            # 隱私保護應用程式配置
+            'privacy_apps': PRIVACY_APPS,
+            'privacy_app_fallback': PRIVACY_APP_FALLBACK,
+            'privacy_app_custom_path': PRIVACY_APP_CUSTOM_PATH,
         }
         
         if os.path.exists(self.config_file):
@@ -58,16 +61,175 @@ class ConfigManager:
         logger.info(f"1. 臉部偵測閾值: {self.config['detection_threshold']}")
         logger.info(f"2. 隱私模式延遲: {self.config['privacy_delay']} 秒")
         logger.info(f"3. 攝影機索引: {self.config['camera_index']}")
-        logger.info(f"4. 覆蓋層透明度: {self.config['overlay_alpha']}")
-        logger.info(f"5. 偵測間隔: {self.config['detection_interval']} 秒")
-        logger.info(f"6. 顯示臉部預覽: {'是' if self.config['enable_face_preview'] else '否'}")
+        logger.info(f"4. 偵測間隔: {self.config['detection_interval']} 秒")
+        logger.info(f"5. 顯示臉部預覽: {'是' if self.config['enable_face_preview'] else '否'}")
+        logger.info(f"6. 隱私保護應用程式設定")
+        logger.info(f"7. 自訂應用程式路徑: {self.config.get('privacy_app_custom_path', '未設定')}")
         
+    def show_privacy_apps_config(self):
+        """顯示隱私保護應用程式配置"""
+        logger.info("\n📱 隱私保護應用程式設定")
+        logger.info("=" * 50)
+        
+        privacy_apps = self.config.get('privacy_apps', {})
+        for os_name, app_config in privacy_apps.items():
+            os_display = {"darwin": "macOS", "win32": "Windows"}.get(os_name, os_name)
+            logger.info(f"\n{os_display}:")
+            logger.info(f"  應用程式名稱: {app_config.get('name', '未設定')}")
+            logger.info(f"  開啟命令: {app_config.get('command', '未設定')}")
+            logger.info(f"  備用路徑: {app_config.get('fallback_path', '未設定')}")
+        
+        fallback_apps = self.config.get('privacy_app_fallback', {})
+        if fallback_apps:
+            logger.info("\n備用應用程式:")
+            for os_name, app_config in fallback_apps.items():
+                os_display = {"darwin": "macOS", "win32": "Windows"}.get(os_name, os_name)
+                logger.info(f"  {os_display}: {app_config.get('name', '未設定')}")
+    
+    def modify_privacy_apps(self):
+        """修改隱私保護應用程式設定"""
+        while True:
+            self.show_privacy_apps_config()
+            logger.info("\n選擇操作:")
+            logger.info("1. 修改 macOS 應用程式")
+            logger.info("2. 修改 Windows 應用程式")
+            logger.info("3. 設定自訂應用程式路徑")
+            logger.info("4. 測試開啟應用程式")
+            logger.info("0. 返回上級選單")
+            
+            try:
+                choice = int(input("請輸入選項: "))
+                
+                if choice == 0:
+                    break
+                elif choice == 1:
+                    self.modify_os_app("darwin", "macOS")
+                elif choice == 2:
+                    self.modify_os_app("win32", "Windows")
+                elif choice == 3:
+                    new_path = input("輸入自訂應用程式完整路徑 (留空清除): ").strip()
+                    self.config['privacy_app_custom_path'] = new_path
+                    logger.info("✅ 自訂路徑已更新")
+                elif choice == 4:
+                    self.test_privacy_app()
+                else:
+                    logger.error("❌ 無效選項")
+                    
+            except ValueError:
+                logger.error("❌ 請輸入有效數字")
+            except KeyboardInterrupt:
+                logger.info("\n操作取消")
+                break
+    
+    def modify_os_app(self, os_key, os_name):
+        """修改特定作業系統的應用程式設定"""
+        logger.info(f"\n修改 {os_name} 應用程式設定")
+        
+        privacy_apps = self.config.get('privacy_apps', {})
+        if os_key not in privacy_apps:
+            privacy_apps[os_key] = {}
+        
+        current_app = privacy_apps[os_key]
+        
+        logger.info(f"當前設定:")
+        logger.info(f"  應用程式名稱: {current_app.get('name', '未設定')}")
+        logger.info(f"  開啟命令: {current_app.get('command', '未設定')}")
+        logger.info(f"  備用路徑: {current_app.get('fallback_path', '未設定')}")
+        
+        # 修改應用程式名稱
+        new_name = input(f"輸入新的應用程式名稱 (當前: {current_app.get('name', '未設定')}): ").strip()
+        if new_name:
+            current_app['name'] = new_name
+        
+        # 修改開啟命令
+        if os_key == "darwin":
+            logger.info("macOS 命令範例: open -a 'Google Chrome'")
+        elif os_key == "win32":
+            logger.info("Windows 命令範例: msedge.exe, notepad.exe")
+            
+        new_command = input(f"輸入新的開啟命令 (當前: {current_app.get('command', '未設定')}): ").strip()
+        if new_command:
+            current_app['command'] = new_command
+        
+        # 修改備用路徑
+        new_fallback = input(f"輸入備用路徑 (當前: {current_app.get('fallback_path', '未設定')}): ").strip()
+        if new_fallback:
+            current_app['fallback_path'] = new_fallback
+        
+        privacy_apps[os_key] = current_app
+        self.config['privacy_apps'] = privacy_apps
+        logger.info(f"✅ {os_name} 應用程式設定已更新")
+    
+    def test_privacy_app(self):
+        """測試開啟隱私保護應用程式"""
+        logger.info("\n🧪 測試隱私保護應用程式...")
+        
+        try:
+            # 臨時匯入必要的模組來測試
+            import subprocess
+            import sys
+            
+            current_os = sys.platform
+            privacy_apps = self.config.get('privacy_apps', {})
+            custom_path = self.config.get('privacy_app_custom_path', '')
+            
+            # 如果有自訂路徑，優先測試
+            if custom_path and os.path.exists(custom_path):
+                try:
+                    subprocess.Popen([custom_path])
+                    logger.info("✅ 自訂路徑應用程式開啟成功")
+                    return
+                except Exception as e:
+                    logger.error(f"❌ 自訂路徑開啟失敗: {e}")
+            
+            # 測試當前系統的應用程式
+            if current_os not in privacy_apps:
+                logger.error(f"❌ 未設定 {current_os} 的應用程式配置")
+                return
+            
+            app_config = privacy_apps[current_os]
+            app_name = app_config.get('name', '未知應用程式')
+            app_command = app_config.get('command', '')
+            
+            if not app_command:
+                logger.error("❌ 未設定開啟命令")
+                return
+            
+            logger.info(f"正在測試開啟: {app_name}")
+            
+            if current_os == "darwin":  # macOS
+                if app_command.startswith("open -a"):
+                    app_name_from_cmd = app_command.split("'")[1] if "'" in app_command else app_name
+                    result = subprocess.run([
+                        "open", "-a", app_name_from_cmd
+                    ], capture_output=True, text=True, timeout=10)
+                    
+                    if result.returncode == 0:
+                        logger.info(f"✅ {app_name} 開啟成功")
+                    else:
+                        logger.error(f"❌ 開啟失敗: {result.stderr}")
+                else:
+                    cmd_parts = app_command.split()
+                    subprocess.run(cmd_parts, capture_output=True, text=True, timeout=10)
+                    logger.info(f"✅ {app_name} 開啟成功")
+                    
+            elif current_os == "win32":  # Windows
+                cmd_parts = app_command.split()
+                subprocess.Popen(cmd_parts)
+                logger.info(f"✅ {app_name} 開啟成功")
+            else:
+                logger.error(f"❌ 不支援的作業系統: {current_os}")
+                
+        except subprocess.TimeoutExpired:
+            logger.error("❌ 開啟命令逾時")
+        except Exception as e:
+            logger.error(f"❌ 測試失敗: {e}")
         
     def modify_config(self):
         """修改配置"""
         while True:
             self.show_current_config()
-            logger.info("\n選擇要修改的設定 (1-8)，或按 0 返回主選單:")
+            logger.info("\n選擇要修改的設定 (1-7)，或按 0 返回主選單:")
             
             try:
                 choice = int(input("請輸入選項: "))
@@ -93,21 +255,20 @@ class ConfigManager:
                     else:
                         logger.error("❌ 索引必須大於等於 0")
                 elif choice == 4:
-                    new_value = float(input("輸入覆蓋層透明度 (0.0-1.0): "))
-                    if 0.0 <= new_value <= 1.0:
-                        self.config['overlay_alpha'] = new_value
-                    else:
-                        logger.error("❌ 透明度必須在 0.0-1.0 之間")
-                elif choice == 5:
                     new_value = float(input("輸入偵測間隔 (秒): "))
                     if new_value > 0:
                         self.config['detection_interval'] = new_value
                     else:
                         logger.error("❌ 間隔必須大於 0")
-                elif choice == 6:
+                elif choice == 5:
                     answer = input("顯示臉部預覽? (y/n): ").lower()
                     self.config['enable_face_preview'] = answer == 'y'
-                
+                elif choice == 6:
+                    self.modify_privacy_apps()
+                elif choice == 7:
+                    new_path = input("輸入自訂應用程式完整路徑 (留空清除): ").strip()
+                    self.config['privacy_app_custom_path'] = new_path
+                    logger.info("✅ 自訂路徑已更新")
                 else:
                     logger.error("❌ 無效選項")
                     

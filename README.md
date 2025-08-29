@@ -4,10 +4,9 @@
 
 **情境擴展：** 在咖啡廳、機場等公開場所工作時，也能防止旁人窺視，保護商業機密或個人隱私不外洩。
 
-## ✨ 功能特色
-
-- 🎯 **智慧臉部偵測**: 使用輕量級臉部辨識模型，支援 NPU 加速。
+## 🎯 **智慧臉部偵測**: 使用輕量級臉部辨識模型，支援 NPU 加速。
 - 🔒 **自動隱私保護**: 偵測到多人時自動啟動隱私模式。
+- 📱 **自由選擇隱私應用程式**: 可自訂在隱私模式下開啟的應用程式，支援不同作業系統配置。
 - ⚡ **即時響應**: 低延遲的偵測和響應。
 - 🛠️ **CLI 設定工具**: 簡單的命令列介面調整設定。
 - 📝 **詳細日誌**: 完整的偵測記錄。
@@ -47,52 +46,37 @@ venv\Scripts\activate
 
 ### 4. 安裝相依套件
 
-本專案的相依套件已列於 `requirements.txt`。
+本專案提供兩種安裝方式，請根據您的執行環境選擇：
+
+#### 🖥️ CPU 執行環境
+
+如果您想在一般電腦上使用 CPU 執行：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-相依套件列表：
+#### ⚡ NPU 加速環境 (Snapdragon X 系列)
 
-- `opencv-python`: 用於影像處理與攝影機控制。
-- `onnxruntime`: 用於運行 ONNX AI 模型。
-- `numpy`: 高效的數值運算函式庫。
-- `pyautogui`: 用於螢幕控制（目前版本未使用，為未來功能保留）。
-- `pillow`: 圖像處理函式庫。
-- `scipy`: 用於科學計算，在此專案中優化臉部偵測的後處理。
+如果您使用的是搭載 Snapdragon X Elite/Plus 的裝置，想要使用 NPU 加速：
 
----
+```bash
+pip install -r requirements-qnn.txt
+```
 
-## 🚀 在 Snapdragon X 系列筆電上運行 (NPU 加速)
+#### 相依套件說明
 
-> ⚠️ **注意**: 此功能尚未在實際的 Snapdragon X 系列硬體上進行測試，功能可行性有待驗證。
+**基本套件** (requirements.txt)：
+- `opencv-python`: 用於影像處理與攝影機控制
+- `onnxruntime`: 用於運行 ONNX AI 模型 (CPU 版本)
+- `numpy`: 高效的數值運算函式庫
+- `pyautogui`: 用於螢幕控制（目前版本未使用，為未來功能保留）
+- `pillow`: 圖像處理函式庫
+- `scipy`: 用於科學計算，在此專案中優化臉部偵測的後處理
 
-為了在搭載 Snapdragon X Elite/Plus 的筆電上獲得最佳效能，建議使用 `QNN` 執行緒提供者 (Execution Provider) 來驅動 NPU 進行 AI 運算。
-
-### 1. ONNX Runtime 的 QNN 執行緒提供者
-
-`onnxruntime` 需要特定組態才能使用 Snapdragon NPU (也稱為 Qualcomm AI Engine)。這通常需要使用為了 Windows on Arm (WoA) 編譯的版本，並包含 QNN 支援。
-
-- **QNN 僅適用於 Windows 且具備 Qualcomm NPU 的裝置。**
-- **使用 QnnExecutionProvider 前，請先安裝 `onnxruntime-qnn`：**
-
-  ```bash
-  pip install onnxruntime-qnn
-  ```
-
-### 2. 如何啟用 NPU 加速
-
-本專案程式碼**預設會嘗試使用 NPU**。`main.py` 中的模型載入邏輯會優先選擇 `QnnExecutionProvider`。如果 QNN 不可用，它會自動切換回 `CPUExecutionProvider`。
-
-您無需修改程式碼即可利用 NPU 加速。只需確保您的 `onnxruntime` 安裝正確。
-
-### 3. 驗證 NPU 是否啟用
-
-運行程式時，請觀察終端機的啟動訊息。
-
-- 如果看到 `['QnnExecutionProvider', 'CPUExecutionProvider']` 或類似的日誌，表示程式正在嘗試使用 QNN。
-- 如果 `onnxruntime` 成功初始化 QNN，通常表示 NPU 已被驅動。如果失敗，它會回退到 CPU，您可能會在日誌中看到相關警告。
+**NPU 加速套件** (requirements-qnn.txt)：
+- 包含上述所有基本套件
+- `onnxruntime-qnn`: 支援 Qualcomm NPU 的 ONNX Runtime 版本
 
 ---
 
@@ -109,7 +93,9 @@ python setup.py
 設定工具提供以下功能：
 
 - 調整偵測靈敏度、攝影機索引、延遲時間等參數
+- **配置隱私保護應用程式**: 為不同作業系統設定開啟的應用程式
 - 測試攝影機是否正常運作
+- **測試隱私應用程式**: 驗證應用程式是否能正常開啟
 - 儲存設定
 - **設定完成後可直接從工具內啟動 Watch Out**
 
@@ -142,11 +128,84 @@ python main.py
     - 啟用臉部預覽功能（可於 `setup.py` 中設定）。
     - 程式啟動後，您應該會看到一個預覽視窗，並在偵測到的臉部周圍繪製方框。
 
-3. **隱私模式驗證**:
+3. **隱私應用程式測試**:
+    - 運行 `python setup.py`。
+    - 選擇「2. 修改設定」→「7. 隱私保護應用程式設定」→「4. 測試開啟應用程式」。
+    - 系統會嘗試開啟您配置的隱私保護應用程式。
+
+4. **隱私模式驗證**:
     - 保持程式運行。
     - **單人場景**: 確保只有您一人在攝影機畫面中，此時應為「安全模式」，螢幕正常。
-    - **多人場景**: 請另一位同事或朋友進入攝影機畫面。在短暫延遲後，程式應切換至「隱私模式」，並在終端機顯示提示訊息。
+    - **多人場景**: 請另一位同事或朋友進入攝影機畫面。在短暫延遲後，程式應切換至「隱私模式」，並自動開啟您配置的隱私保護應用程式。
     - **暫時停用**: 按下 `ESC` 鍵，隱私模式應會暫時解除。
+
+---
+
+## 📱 隱私保護應用程式配置
+
+Watch Out 支援自訂隱私模式下開啟的應用程式，您可以選擇任何您偏好的應用程式來提供隱私保護。
+
+### 支援的配置方式
+
+### 配置方式
+
+#### 1. 透過設定工具配置 (推薦)
+
+```bash
+python setup.py
+```
+
+**配置步驟**：
+1. 選擇「2. 修改設定」
+2. 選擇「6. 隱私保護應用程式設定」
+3. 選擇要配置的作業系統 (macOS/Windows)
+4. 依提示輸入應用程式資訊：
+   - 應用程式名稱
+   - 開啟命令
+   - 備用路徑 (可選)
+5. 選擇「4. 測試開啟應用程式」驗證設定
+6. 回到主選單選擇「4. 儲存設定」
+
+#### 2. 配置範例
+
+**macOS 設定範例**：
+- 應用程式名稱：`Google Chrome`, `Safari`, `Notes`
+- 開啟命令：`open -a 'Google Chrome'`, `open -a 'Safari'`
+- 備用路徑：`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+
+**Windows 設定範例**：
+- 應用程式名稱：`Microsoft Edge`, `Notepad`, `Calculator`
+- 開啟命令：`msedge.exe`, `notepad.exe`, `calc.exe`
+- 備用路徑：（可選）
+
+#### 3. 自訂應用程式路徑
+
+如需使用特定的應用程式路徑，可在設定工具中設定自訂應用程式路徑（選項 7），輸入完整的執行檔路徑：
+
+**範例**：
+- macOS: `/Applications/MyApp.app/Contents/MacOS/MyApp`
+- Windows: `C:\Program Files\MyApp\MyApp.exe`
+
+### 備用機制
+
+系統提供多層備用機制確保隱私保護的可靠性：
+
+1. **自訂路徑優先**: 如有設定自訂應用程式路徑，會優先使用
+2. **主要應用程式**: 使用為當前作業系統配置的主要應用程式
+3. **備用路徑**: 如主要命令失敗，嘗試使用備用路徑
+4. **備用應用程式**: 最後嘗試開啟系統預設的備用應用程式
+
+### 常見應用程式配置範例
+
+**瀏覽器類**：
+- Chrome: `open -a 'Google Chrome'` (macOS) / `chrome.exe` (Windows)
+- Safari: `open -a 'Safari'` (macOS)
+- Edge: `msedge.exe` (Windows)
+
+**系統工具類**：
+- 記事本: `notepad.exe` (Windows)
+- 計算機: `open -a 'Calculator'` (macOS) / `calc.exe` (Windows)
+- 文字編輯: `open -a 'TextEdit'` (macOS)
 
 ---
 
