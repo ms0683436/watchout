@@ -1,0 +1,6 @@
+opencv-python
+onnxruntime-qnn==1.22.0
+numpy
+pyautogui
+pillow
+scipy

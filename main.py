@@ -80,7 +80,7 @@ class PrivacyGuard:
             logger.info("Loading face detection model...")
             
             # Define execution providers, prioritizing QNN (NPU) over CPU
-            providers = ['QnnExecutionProvider', 'CPUExecutionProvider']
+            providers = ['QNNExecutionProvider', 'CPUExecutionProvider']
             
             self.session = ort.InferenceSession(MODEL_PATH, providers=providers)
             
