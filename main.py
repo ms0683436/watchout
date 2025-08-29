@@ -35,6 +35,7 @@ class PrivacyGuard:
         self.is_running = False
         self.privacy_mode = False
         self.last_detection_time = 0
+        self.chrome_process = None  # 用來追蹤 Chrome 進程
         
         # Load configuration
         self.load_user_config()
@@ -73,6 +74,15 @@ class PrivacyGuard:
                 logger.info("User configuration loaded")
             except Exception as e:
                 logger.warning(f"Failed to load user configuration, using default settings: {e}")
+
+        # 隱私保護應用程式設定
+        self.privacy_app_name = PRIVACY_APP_NAME
+        self.privacy_app_command_macos = PRIVACY_APP_COMMAND_MACOS
+        self.privacy_app_command_windows = PRIVACY_APP_COMMAND_WINDOWS
+        self.privacy_app_command_linux = PRIVACY_APP_COMMAND_LINUX
+        self.privacy_app_path = PRIVACY_APP_PATH
+        
+        logger.info("Configuration loaded from config.py")
         
     def load_model(self):
         """Loads the ONNX face detection model"""
@@ -263,20 +273,124 @@ class PrivacyGuard:
             logger.error(f"Simplified face detection failed: {e}")
             return 0, []
             
+    def open_chrome_app(self):
+        """開啟隱私保護應用程式"""
+        try:
+            logger.info(f"正在開啟隱私保護應用程式: {self.privacy_app_name}")
+            
+            # 如果有自訂路徑，優先使用
+            if self.privacy_app_path and os.path.exists(self.privacy_app_path):
+                try:
+                    self.chrome_process = subprocess.Popen([self.privacy_app_path])
+                    logger.info(f"{self.privacy_app_name} 已透過自訂路徑成功開啟")
+                    return True
+                except Exception as e:
+                    logger.warning(f"自訂路徑開啟失敗: {e}")
+            
+            # 根據作業系統使用對應的命令
+            if sys.platform == "darwin":  # macOS
+                try:
+                    # 解析 macOS 命令 (例如: "open -a 'Google Chrome'")
+                    if self.privacy_app_command_macos.startswith("open -a"):
+                        # 提取應用程式名稱
+                        app_name = self.privacy_app_command_macos.split("'")[1] if "'" in self.privacy_app_command_macos else self.privacy_app_name
+                        result = subprocess.run([
+                            "open", "-a", app_name
+                        ], capture_output=True, text=True, timeout=10)
+                        
+                        if result.returncode == 0:
+                            logger.info(f"{self.privacy_app_name} 已透過 'open' 命令成功開啟")
+                            return True
+                        else:
+                            logger.warning(f"Open 命令執行失敗: {result.stderr}")
+                    else:
+                        # 直接執行命令
+                        cmd_parts = self.privacy_app_command_macos.split()
+                        result = subprocess.run(cmd_parts, capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0:
+                            logger.info(f"{self.privacy_app_name} 已成功開啟")
+                            return True
+                        
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"{self.privacy_app_name} 開啟命令逾時")
+                except Exception as e1:
+                    logger.warning(f"macOS 方法1失敗: {e1}")
+                    
+                try:
+                    # 方法2: 嘗試直接執行應用程式路徑
+                    app_path = f"/Applications/{self.privacy_app_name}.app/Contents/MacOS/{self.privacy_app_name}"
+                    if os.path.exists(app_path):
+                        self.chrome_process = subprocess.Popen([app_path])
+                        logger.info(f"{self.privacy_app_name} 已透過直接路徑成功開啟")
+                        return True
+                    else:
+                        logger.warning(f"在預設位置找不到 {self.privacy_app_name}")
+                        
+                except Exception as e2:
+                    logger.error(f"macOS 方法2失敗: {e2}")
+            
+            elif sys.platform == "win32":  # Windows
+                try:
+                    # 使用 Windows 命令
+                    if self.privacy_app_command_windows:
+                        cmd_parts = self.privacy_app_command_windows.split()
+                        self.chrome_process = subprocess.Popen(cmd_parts)
+                        logger.info(f"{self.privacy_app_name} 在 Windows 上成功開啟")
+                        return True
+                except Exception as e:
+                    logger.error(f"在 Windows 上開啟 {self.privacy_app_name} 失敗: {e}")
+            
+            elif sys.platform.startswith("linux"):  # Linux
+                try:
+                    # 使用 Linux 命令
+                    if self.privacy_app_command_linux:
+                        cmd_parts = self.privacy_app_command_linux.split()
+                        self.chrome_process = subprocess.Popen(cmd_parts)
+                        logger.info(f"{self.privacy_app_name} 在 Linux 上成功開啟")
+                        return True
+                except Exception as e:
+                    logger.error(f"在 Linux 上開啟 {self.privacy_app_name} 失敗: {e}")
+            
+            logger.error(f"無法開啟 {self.privacy_app_name}，請確認應用程式已安裝或檢查配置")
+            return False
+            
+        except Exception as e:
+            logger.error(f"開啟隱私保護應用程式失敗: {e}")
+            return False
+    
+    def close_chrome_privacy(self):
+        """關閉隱私保護應用程式"""
+        try:
+            # 注意：我們不會強制關閉應用程式，因為用戶可能正在使用它
+            if self.chrome_process:
+                logger.info(f"{self.privacy_app_name} 已為隱私保護而開啟。如需要可手動關閉。")
+                self.chrome_process = None
+            
+            logger.info("隱私保護應用程式模式已停用")
+            return True
+            
+        except Exception as e:
+            logger.error(f"關閉隱私保護應用程式失敗: {e}")
+            return False
+            
     def create_privacy_overlay(self):
-        """Creates a full-screen blur overlay (CLI style)"""
+        """Creates a privacy protection by opening an application"""
         try:
             self.privacy_mode = True
             # Display a clear privacy mode message in the terminal
             logger.info("\n" + "="*60)
             logger.info("🔒 Watch Out Mode Activated!")
-            logger.info("Someone else detected. It's recommended to step away or secure sensitive content.")
+            logger.info("Someone else detected. Opening an application for privacy protection...")
             logger.info("Press Ctrl+C to exit")
             logger.info("="*60)
-            
-            
-                    
             logger.info("Watch Out Mode activated")
+            
+            # 開啟指定的隱私保護應用程式
+            app_success = self.open_chrome_app()
+            if app_success:
+                logger.info(f"{self.privacy_app_name} 隱私保護已成功啟動")
+            else:
+                logger.warning(f"{self.privacy_app_name} 隱私保護啟動失敗，繼續使用標準模式")
             
         except Exception as e:
             logger.error(f"Failed to activate Watch Out Mode: {e}")
@@ -291,6 +405,10 @@ class PrivacyGuard:
                 logger.info("Environment secure. You can continue your work.")
                 logger.info("="*60)
                 logger.info("Watch Out Mode deactivated")
+                
+                # 關閉 Chrome 隱私保護
+                self.close_chrome_privacy()
+                
         except Exception as e:
             logger.error(f"Failed to deactivate Watch Out Mode: {e}")
             
@@ -473,6 +591,10 @@ class PrivacyGuard:
             self.cap.release()
             
         self.remove_privacy_overlay()
+        
+        # 確保關閉 Chrome 隱私保護
+        self.close_chrome_privacy()
+        
         cv2.destroyAllWindows()
         
         # Ensure all OpenCV windows are closed

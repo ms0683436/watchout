@@ -19,6 +19,13 @@ OVERLAY_ALPHA = 0.8       # 覆蓋層透明度 (0.0-1.0)
 OVERLAY_COLOR = 'black'   # 覆蓋層顏色
 WARNING_TEXT_SIZE = 24    # 警告文字大小
 
+# 隱私保護應用程式設定
+PRIVACY_APP_NAME = "Google Chrome"  # 要開啟的應用程式名稱 (macOS)
+PRIVACY_APP_COMMAND_MACOS = "open -a 'Google Chrome'"  # macOS 開啟命令
+PRIVACY_APP_COMMAND_WINDOWS = "chrome.exe"  # Windows 開啟命令
+PRIVACY_APP_COMMAND_LINUX = "google-chrome"  # Linux 開啟命令
+PRIVACY_APP_PATH = ""  # 自訂應用程式路徑 (可選)
+
 # 系統設定
 DETECTION_INTERVAL = 0.1  # 偵測間隔 (秒)
 LOG_LEVEL = 'INFO'        # 日誌等級 (DEBUG, INFO, WARNING, ERROR)
